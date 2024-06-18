@@ -13,6 +13,7 @@ import os
 import csv
 import time
 import json
+import io
 
 dotenv.load_dotenv()
 app = Flask(__name__)
@@ -185,6 +186,8 @@ def upload_csv():
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
 
+    output_format = request.form.get('output_format', 'json')  # Default to 'json' if not specified
+
     if file and file.filename.endswith('.csv'):
         experiments = []
         try:
@@ -215,7 +218,6 @@ def upload_csv():
 
                 evaluator = load_evaluator(
                     "labeled_score_string",
-                    # https://api.python.langchain.com/en/latest/evaluation/langchain.evaluation.schema.EvaluatorType.html "The labeled scored string evaluator, which gives a score between 1 and 10 to a prediction based on a ground truth reference label."
                     llm=llm_evaluator,
                     criteria=accuracy_criteria
                 )
@@ -279,7 +281,29 @@ def upload_csv():
                     'error': str(e)
                 })
 
-        return jsonify(results)
+        if output_format == 'csv':
+            # Generate CSV
+            output = io.StringIO()
+            writer = csv.writer(output)
+            writer.writerow(['Date', 'Model', 'Temperature', 'Iteration', 'Prediction', 'Score', 'Reason'])
+
+            for result in results:
+                for eval_result in result['eval_results']:
+                    writer.writerow([
+                        time.strftime("%Y-%m-%d"),
+                        result['model'],
+                        result['temperature'],
+                        eval_result['iteration'],
+                        eval_result['prediction'],
+                        eval_result['score'],
+                        eval_result['reason']
+                    ])
+
+            response = Response(output.getvalue(), mimetype='text/csv')
+            response.headers['Content-Disposition'] = 'attachment; filename=evaluation_results.csv'
+            return response
+        else:
+            return jsonify(results)
     else:
         return jsonify({'error': 'Invalid file format. Please upload a CSV file.'}), 400
 
