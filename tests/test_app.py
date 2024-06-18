@@ -34,18 +34,17 @@ def test_upload_csv_no_file(client):
 
 def test_upload_csv_with_file(client, tmp_path):
     csv_content = """model,temperature,max_new_tokens,prompt,criteria,iterations,expected_result
-    llama_3_8b,0.5,100,Write a poem about the sea.,Score 10: Perfect. Score 1: Bad.,1,A beautiful poem about the sea.
-    """
+llama3_8b,0.5,700,Write a poem about the sea.,Score 10: Perfect. Score 1: Bad.,1,A beautiful poem about the sea.
+"""
     csv_file = tmp_path / "test.csv"
     csv_file.write_text(csv_content)
 
     with open(csv_file, 'rb') as f:
         response = client.post('/upload_csv', data={'file': f})
         assert response.status_code == 200
-        response_data = response.get_json()
-        assert isinstance(response_data, list)
-        assert 'model' in response_data[0]
-        assert 'eval_results' in response_data[0]
+        assert response.headers['Content-Type'] == 'text/csv'
+        assert 'Content-Disposition' in response.headers
+        assert response.headers['Content-Disposition'] == 'attachment; filename=evaluation_results.csv'
 
 def test_evaluate_stream(client):
     data = {

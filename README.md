@@ -81,15 +81,20 @@ LLM Evaluator is a web application for evaluating the performance of language mo
 
 B. Using Upload CSV interface
 
-- Use the "Upload CSV" tab to upload a CSV file with multiple experiments. The app will run the evaluations based on the data in the CSV file.
+1. Navigate to the "Upload CSV" tab.
+2. Choose a CSV file that contains multiple experiments to run. The CSV file should have the following columns: `model`, `temperature`, `max_new_tokens`, `prompt`, `criteria`, `iterations`, `expected_result`.
+3. Click "Upload and Run Experiments".
+4. The app will process the file and return a CSV file with the results of the experiments.
+5. Download the results as a CSV file and review the evaluation scores, predictions, and reasonings.
 
-CSV file format:
-```
+Example of the CSV content:
+```csv
 model,temperature,max_new_tokens,prompt,criteria,iterations,expected_result
 gpt_3.5,0.7,700,"Hello, world!","correctness",1,"Hello, world!"
 llama_3_8b,0.5,500,"Tell me a story about a brave knight.","storytelling",3,"Once upon a time..."
 granite_13b_instruct,0.8,600,"What is the capital of France?","correctness",2,"Paris"
 ```
+
 ![](static/images/llmeval3.png)
 
 ### Example Scoring Template
