@@ -81,6 +81,7 @@ document.getElementById('evaluation-form').addEventListener('submit', function(e
                     let finalResults = `
                         <p>Average Score: ${data.avg_score}</p>
                         <p>Final Verdict: ${data.final_verdict}</p>
+                        <p>Total duration: ${data.total_duration} ms</p>
                     `;
                     resultTableDiv.insertAdjacentHTML('beforeend', finalResults);
                     document.getElementById('export-csv').classList.remove('hidden');
@@ -138,11 +139,6 @@ document.getElementById('evaluation-form').addEventListener('submit', function(e
         resultTableDiv.innerHTML = '<p>Error occurred. Please try again.</p>';
     });
 });
-
-
-
-
-
 
 document.getElementById('csv-upload-form').onsubmit = function(event) {
     event.preventDefault();

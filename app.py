@@ -9,11 +9,16 @@ from langchain.schema import HumanMessage
 import dotenv
 import re
 import logging
+logger = logging.getLogger(__name__)
+
 import os
 import csv
 import time
 import json
 import io
+
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 
 dotenv.load_dotenv()
 app = Flask(__name__)
@@ -309,6 +314,8 @@ def upload_csv():
 
 @app.route('/evaluate_stream', methods=['POST'])
 def evaluate_stream():
+    start_time = time.time()  # Start time for the entire request
+
     @stream_with_context
     def generate():
         required_fields = ['model', 'temperature', 'max_new_tokens', 'prompt', 'criteria', 'iterations', 'expected_result']
@@ -342,7 +349,7 @@ def evaluate_stream():
         llm = get_llm(model, temperature, max_new_tokens)
         eval_results = []
 
-        for i in range(iterations):
+        def evaluate_single_iteration(i):
             try:
                 if isinstance(llm, (ChatOpenAI, BedrockChat)):
                     messages = [HumanMessage(content=prompt)]
@@ -371,7 +378,7 @@ def evaluate_stream():
                     'score': score,
                     'reason': eval_result['reasoning']
                 }
-                eval_results.append(result)
+                return result
             except ValueError as e:
                 logging.error(f"Error during evaluation: {e}")
                 result = {
@@ -380,9 +387,15 @@ def evaluate_stream():
                     'score': None,
                     'reason': str(e)
                 }
-                eval_results.append(result)
+                return result
 
-            yield f"data: {json.dumps(result)}\n\n".encode()
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            futures = [executor.submit(evaluate_single_iteration, i) for i in range(iterations)]
+
+            for future in as_completed(futures):
+                result = future.result()
+                eval_results.append(result)
+                yield f"data: {json.dumps(result)}\n\n".encode()
 
         scores = [result["score"] for result in eval_results if result["score"] is not None]
         avg_score = sum(scores) / len(scores) if scores else None
@@ -408,10 +421,14 @@ def evaluate_stream():
             logging.error(f"Error during final verdict generation: {e}")
             final_verdict = str(e)
 
-        yield f"data: {json.dumps({'eval_results': eval_results, 'avg_score': avg_score, 'final_verdict': final_verdict, 'temperature': temperature})}\n\n".encode()
+        total_duration = time.time() - start_time  # Total duration for the request
+        total_duration_in_milliseconds = total_duration * 1000
+        total_duration_formatted = f"{total_duration_in_milliseconds:.3f}"
+        logger.info(f"Total duration: {total_duration_formatted}")
+
+        yield f"data: {json.dumps({'eval_results': eval_results, 'avg_score': avg_score, 'final_verdict': final_verdict, 'temperature': temperature, 'total_duration': total_duration_formatted})}\n\n".encode()
 
     return Response(generate(), content_type='text/event-stream')
-
 
 
 if __name__ == '__main__':
