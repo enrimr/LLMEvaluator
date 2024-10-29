@@ -1,5 +1,5 @@
 {
-    "model": "granite_13b_chat",
+    "model": "granite-3-8b-instruct",
     "temperature": 0.5,
     "max_new_tokens": 700,
     "prompt": "Explain the process of photosynthesis in plants.",

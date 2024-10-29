@@ -65,12 +65,24 @@ def get_llm(model_name, temperature, max_new_tokens):
     elif model_name == 'mistral_7b_instruct':
         return BedrockLLM(model_id="mistral.mistral-7b-instruct-v0:2")
     elif model_name == 'granite_13b_chat':
-        return WatsonxLLM(model_id="ibm/granite-13b-chat-v2", project_id=os.environ["WATSONX_PROJECT_ID"],
-                          params=parameters)
+        return WatsonxLLM(model_id="ibm/granite-13b-chat-v2", project_id=os.environ["WATSONX_PROJECT_ID"], params=parameters)
     elif model_name == 'granite_13b_instruct':
         return WatsonxLLM(model_id="ibm/granite-13b-instruct-v2", project_id=os.environ["WATSONX_PROJECT_ID"], params=parameters)
     elif model_name == 'granite_20b_multilingual':
         return WatsonxLLM(model_id="ibm/granite-20b-multilingual", project_id=os.environ["WATSONX_PROJECT_ID"], params=parameters)
+    elif model_name == 'granite-3-2b-instruct':
+        return WatsonxLLM(model_id="ibm/granite-3-2b-instruct", project_id=os.environ["WATSONX_PROJECT_ID"],
+                          params=parameters)
+    elif model_name == 'granite-3-8b-instruct':
+        return WatsonxLLM(model_id="ibm/granite-3-8b-instruct", project_id=os.environ["WATSONX_PROJECT_ID"],
+                          params=parameters)
+    elif model_name == 'llama_3_2_1b':
+        return WatsonxLLM(model_id="meta-llama/llama-3-2-1b-instruct", project_id=os.environ["WATSONX_PROJECT_ID"], params=parameters)
+    elif model_name == 'llama_3_2_3b':
+        return WatsonxLLM(model_id="meta-llama/llama-3-2-3b-instruct", project_id=os.environ["WATSONX_PROJECT_ID"], params=parameters)
+    elif model_name == 'llama_3_2_11b_vision':
+        return WatsonxLLM(model_id="meta-llama/llama-3-2-11b-vision-instruct", project_id=os.environ["WATSONX_PROJECT_ID"],
+                          params=parameters)
     else:
         return OpenAI(temperature=temperature, max_tokens=max_new_tokens)  # default model
 
